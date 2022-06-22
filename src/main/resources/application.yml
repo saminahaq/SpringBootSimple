@@ -1,0 +1,78 @@
+server:
+  port: 8082
+
+#very sensitive add spacebar chat not tab, otherwise shows error [right should be green in color]
+spring:
+ profiles:
+  active: dev
+  
+   
+---
+
+#DEV profile [this is second documnet]
+spring:
+
+  profiles: dev	
+  database:
+    driver-class-name: com.mysql.jdbc.Driver
+  datasource:
+    username: root
+    url: jdbc:mysql://localhost:3306/dcbapp-Dev
+    password: removedforGit
+  jpa:
+    hibernate:
+      ddl-auto: update
+      show-sql: 'true'
+
+welcome:
+  message: Welcome to the Basic SpringBoot Dev Profile !!!
+  
+management:
+ endpoints:
+  web:
+   exposure:
+    include: "*" 
+    exclude: "env,beans"
+  
+  
+---
+  
+#QA  profile [this is second documnet]
+spring:
+
+  profiles: qa	 
+  database:
+    driver-class-name: com.mysql.jdbc.Driver
+  datasource:
+    username: root
+    url: jdbc:mysql://localhost:3306/dcbapp-QA
+    password: removedforGit
+  jpa:
+    hibernate:
+      ddl-auto: update
+      show-sql: 'true'
+
+welcome:
+  message: Welcome to the Basic SpringBoot QA Profile !!!
+  
+---
+
+#Production  profile [this is second documnet]
+spring:
+
+  profiles: prod	
+  database:
+    driver-class-name: com.mysql.jdbc.Driver
+  datasource:
+    username: root
+    url: jdbc:mysql://localhost:3306/dcbapp-Prod
+    password: removedforGit
+  jpa:
+    hibernate:
+      ddl-auto: update
+      show-sql: 'true'
+
+welcome:
+  message: Welcome to the Basic SpringBoot Production Profile !!!  
+  
+  

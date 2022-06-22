@@ -1,0 +1,447 @@
+This is basic SpringBoot application
+used these following annotation
+
+1: @Controller //this is old annotation 
+2: @ RestController //this is updated controller this has the response body [always return data e. JPA data etc] in it, 
+		which return [used this]
+3: @ResquestMapping : to map the get / post etc
+4: @PathVariable("id") : thi sis within the signature body parameter , for taking input data 
+
+
+Spring DevTool:
+
+that dependency detect the change and restart the server automatically
+<artifactId>spring-boot-devtools</artifactId>
+
+So based on the save, it will re run the application automatically
+
+
+Architecture :
+
+1: Controller layer : this is for the Get, Post , delete API [routing purpose] 
+2: Service layer: this is designed for the business service [main layer for business logic]
+3: Data Access Layer : this is basically the repository layer, that directly connect with the database 
+	[responsible to interact data bases and handling database interaction]. 
+In this app we are using Spring data JPA 
+
+
+Entity Section:
+@Entity : make the POJO put this annotation that make this calls to interact with the database
+@Id : every database requirenment , make one to id and auto generate like below
+		@Id
+		@GeneratedValue(strategy = GenerationType.AUTO)
+
+Controller Section: 
+[for every entity there is a controller] and put the annotation @RestController		
+		
+For the Service section: 
+we need to go for the standard practice and create the interface, that implement the via service
+and put the annotation @Service
+
+For the Repository section:
+
+Here we are not following the standard procedure as we follow for the service section, rather we extend
+the repository from the standard JPA repository with table name and data type of ID of that table in between <>
+
+don't forget to put the @ service an d@ Repository annotation respectively in their classes		
+		
+*******************DepartmentController*******************
+	
+	                                       public void saveDepartment Approach
+	 *                                       
+	 * now here as we have the post endpoint so here we are expecting the data, so technically we are getting data as a json std
+	 * so we need to convert into the our entity format by putting "@RequestBody"
+	 * so whatever the data as a json format converted into the Department entity format
+	 * @RequestBody : json to department objects
+	 * 
+	 * now we want to save this:
+	 * so we call the service layer to pass this data  and do business logic [at service layer] and after business login we call the repository layer to save the data 
+	 * 
+	 * saveDepartment functionality:
+	 * 
+	 * First : call the service layer to pass the data for business logic
+	 * second : do the business logic at service layer
+	 * Third : and after business logic, call repository data for saving purpose [at the depertmentServiceImpl]
+	
+Also, we haven't create the table into database, Spring JPA will create the table 	
+		
+		
+********************DepartmentRepository******************
+In this interface, we can add  sql query here 
+
+?1 for the first parameter
+
+all builtin function from Spring JPA repository, can implemented directly 
+https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.at-query
+table # 03 implemented durectly no need to write function
+see "DepartmentRepository" interface, only using the interface and done!!! no implementation	
+		
+		
+		
+********************   Validation  ******************	
+
+First add the dependency into POm file , from start.spring.io serach "validation"
+
+<artifactId>spring-boot-starter-validation</artifactId>
+
+
+Add validation into the entity section, here e.g Department
+		
+First Step # 01 [ad into the entity "depertmet"]
+@NotBlank(message = "Please add depertment name")
+	private String departmentName;
+	
+Second step # 02 
+go to the controller "depratment controller" entity's contoller and add the "@valid" annotation to tel the controller when ever the "@RequestBody" it take validation	
+		
+********************   Loogers  ******************			
+		
+simple logger we can add @SLF4J //dont need to add anything in to POM
+
+DepartmentControoler 
+
+First add these imports carefully 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+Second Step:
+than add below into the DepartmentController file
+private final Logger  log  = LoggerFactory.getLogger(DepartmentController.class); 
+
+Third Step :
+log.info("Here : Fetchdepertment List"); //put where you want to logged
+
+
+********************   Lombok  ******************	
+install Lombok through "install new software" 
+provide https://projectlombok.org/p2 into the wizard process.
+
+we get ride of all the tedious [boiler plate] code
+
+for this add two things in POM
+
+First step #01
+
+add dependency [two dependencies]:
+
+First
+<dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+    
+    
+Second add plugins:
+
+<plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+
+second step #02
+
+Removed the constructors , toString and getter and setter method from the POJO file e.g Department 
+
+Third Setp # 03
+
+add these annotation
+
+@Data  on the class name [important ] => this for everything constructors , toString and getter and setter
+
+if just want to used specific so , used @Getter etc [@NoArgsConstructor , @AllArgsConstructor]
+
+@Builder //entire builder pattren will be implemented for the entire department pattern
+
+ 
+ ****************************************    Handling Exception  ********************************************
+ 
+ if we are get request of the data that actually not posted before so, we can handle this error in Exceptional Handling
+ 
+ So, now we are creating the exceptional handling for fetchDepartmentList() method
+ 
+ create Error -> DepertmentNotFoundException class
+ and extends that to Exception
+ 
+ Now, than add all override methods and than changed to serviceimpl and further more
+ now in controller we need to fetch exception and reply meaning full response
+ so we are creating "RestResponseEntityExceptionHandler.java"
+ 
+ 	/*
+	 * so this class handle all of the exception that we need to send back as a response,
+	 * instead of getting generic message it will handle and send the specified message 
+	 * 
+	 * and it wil extended by "ResponseEntityExceptionHandler"
+	 * 
+	 * also, it annotated by @ControllerAdvice : its handling all exception of the application
+	 * @controllerAdvice : it include all the controller that we have in the packages for the application
+	 * 
+	 * as we are sending the response so we need this annotation @ResponseStatus 
+	 * 
+	 * now, so far we created only one DepartmentNotFoundException, so now we need to create the method
+	 * that handle DepartmentNotFoundException exception whenever it occures and through that method we send as a
+	 * custom response. so for that we need POJO for error message
+	 * 
+	 * so first, we create a class of the error message [POJO], and than create a method here 
+	 * so now the method here departmentNotFoundException() is kind of ResponseEntity of the POJO class "ErrorMessage"
+	 * and taking the POJO ErrorMessage data filed as parameters and sending back the response
+	 */
+	 
+	 
+ ****************************************    Changing H2 -> MySQL  ********************************************	 
+change the entire properties of the database for the mysql
+
+update the maven for the mysql dependency
+
+note : whatever database using used that driver in the properties
+
+
+ ****************************************   Unit Testing. Concept of testing  ********************************************	
+
+unit testing : we can do entire application (called integeration testing)
+
+we can test all three layers through integeration testing
+we can test one layer only as well
+we are using J unit and Mockito testing 
+
+ these dependency already installed under pom under spring test dependency.
+ 
+ we need to do mocking in unit testing
+ 
+ Mocking testing:
+ The concept of mocking in unit testing as follow
+ 
+ so from controller we are calling to the service layer , but in test we don't need to call the service layer, 
+ and we just need to mock these value for the controller layer testing 
+ so similar thing for the other layer as well those are talking wit other layers e.f repository layer , where we are taking data from database so  
+ we need to mock the data not used the data from the database
+
+/*
+	 * For testing start with the service layer than repository and than controller layer 
+	 * this style is the simplest way to create the test cases, go for the each layer
+	 * 
+	 *  First Step : go to the DepartmentService interface class  for making test class
+	 * 
+	 * on proj explorer :  right-click the class you want to test and click New → JUnit Test Case. 
+	 * 
+	 * add @SpringBootTest on top of class
+	 * 
+	 * for the ServiceLayer test see : DEpartmentSrviceTest
+	 * 
+	 * for repository layer test see : 
+	 * 
+	 * we can used @ JPA test repository for repository test : so we used data and then data is done the data flushed out
+	 * we also create the database for the testing as well
+	 * 
+	 * go to the DepartmentRepository interface class  for making test class
+	 
+	 
+	 controller layer testing little bit differenct here we need to hist the end points 
+	 */
+	
+ 
+so for the 
+
+service Test used : @SpringBootTest
+repository test used :@DataJpaTest
+controller test used :@WebMvcTest(DepartmentController.class)
+
+
+****************************************   Adding Config in properties file ********************************************	
+Adding Config in properties file
+
+ how we can add configuration into the properties file and how we can use it
+ 
+We can create the configuration like this some.config in properties file  
+  e.g
+ so now for this example we rename this to welcome.message in properties file
+ and want to used in the helloController.java
+ 
+ For HelloControler : so if we want to change the welcome message we change here and its reflect
+ 
+ ****************************************   Adding application.yml ********************************************
+
+  Adding application.yml
+  
+  so either application.yml file or application.properties file is created
+  
+  yml is more readable file and no duplicate code we need to write, we can removed teh redundant part in yml files
+  
+  Docker, awz using yml configuration so we can preferred the yml configuration
+  
+ in yml indentation is very important
+ 
+ we can used the online properties to yml conversion
+ 
+ so, after creating the application.properties 
+ 
+ ****************************************   Profiles ******************************************** 
+ 
+  Profiles
+  
+  so the application should be deploy in to the Test server dev server and production server,
+  so for that configuration we need to profile  
+  
+  e.g
+  
+  so for the test server we need to give different database, and for the development server an dproduction should have different independent database
+  so for that we need to go to the properties.yml file 
+  and perform these following steps 
+  
+  In yaml we can create different document for the yml file,
+  so if we  put three hyphens --- 
+  so the above part and lower part become two documents
+   
+  
+   so for dev =>   application_dev.yml 
+   so for test =>   application_test.yml 
+   so for prod =>   application_prod.yml 
+  
+  
+ ****************************************    Running SpringBoot with multiple Profiles ********************************************  
+  Running SpringBoot with multiple Profiles
+ 
+ Now , after creating the different profile, we need to tell the spring that which profile is active profile
+ by adding these following configuration at the top of the yml file not within the profile configuration 
+ 
+ 
+yml is very sensitive add spacebar chat not tab, otherwise shows error [right should be green in color]
+  ****************************************    Deployment with the jar files ********************************************  
+ 
+ Deployment with the jar files so for that we need to go the POM.xml files and check the version 
+ 
+ </parent>
+	<groupId>com.SpringBootExample</groupId>
+	<artifactId>SpringBootExample</artifactId>
+	<version>1.0.0</version> <!-- we can change this version  <version>0.0.1-SNAPSHOT</version> -->
+	<name>SpringBootExample</name>
+	<description>SpringBootExample</description>
+	
+	
+First change the version
+
+second: go to terminal cmd and go to the location of the project
+		 and exceutes these following lines
+		
+		
+		First Step : mvn clean install
+		mvn clean install  [its clean the maven and create the jar files [ pacjkage] 
+also it execute the test cases, until all the all test cases successful, jar will not created 
+also we  have embaded server as well 
+	
+ 
+ 		second Step : go to the target folder in cmd
+ 		
+ under target check the jar file with the provided version number in this case 
+     "1.0.0.jar" something like that at the end of the file 
+ 
+ 
+ 		now deployment step : we need to deploy it 
+ as we don't need to separate server because spring already have the embbeded server inbuilt in particular jar files
+ so now still under the target folder and run this command copy the file name with the help of ls -l
+ Also mention the profile as well otherwise app rake the default profile
+ e.g
+ java -jar "file name end with jar" 
+ so,
+ 
+1: 			java -jar SpringBootExample-1.0.0.jar --spring.profiles.active=prod 
+
+ 
+ now after deployment check the, production database with the postman [we might need to kill the used port[8082] as well]
+ all is well
+ ****************************************    Actuators ********************************************  
+ 
+ Actuators is basically provides, whenever we deploy into production environment, so we need to monitor this application as well
+ so actuator provide theall these health functionality monitor 
+ 
+ 
+ first we need to add the depndency into the POM.xml files 
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    
+    
+    we can see these output on browser
+    
+     "_links": {
+        "self": {
+            "href": "http://localhost:8082/actuator",
+            "templated": false
+        },
+        "health": {
+            "href": "http://localhost:8082/actuator/health",
+            "templated": false
+        },
+        "health-path": {
+            "href": "http://localhost:8082/actuator/health/{*path}",
+            "templated": true
+        }
+    
+    these are standard endpoints which enable bydefault, but we can enable other end points as well
+   here :  health =>
+    gives the health the application which is UP
+    
+    
+    To Enable end points:
+    
+    Go to yml files : lets enable to the all the end point by adding this in specified profile
+    
+ management:
+ endpoints:
+  web:
+   exposure:
+    include: "*"  
+ 
+ all these endpoints are already secure , because these are the behind the spring security   
+ ****************************************    Custom Actuator Endpoint ********************************************     
+    Custom Actuator Endpoint
+    
+ we can create the managment end points from the actuator 
+ create the source folder "Config" 
+ now create the "FeatureEndpoint" class
+ 
+ after runing we can see 
+ feature-featureName: {
+href: "http://localhost:8082/actuator/feature/{featureName}",
+templated: true
+},
+feature: {
+href: "http://localhost:8082/actuator/feature",
+templated: false
+},
+
+
+so for that   http://localhost:8082/actuator/feature/{featureName}
+    
+  we need to pass the 
+  http://localhost:8082/actuator/feature/department  ==that will run  
+    
+ ****************************************    exclude Actuator Endpoint ********************************************     
+    
+    so the env and beans, so if we need to hide these 
+    so go to the yml file
+    
+    add these after the prev config add these [ exclude : "env, beans" ]
+    
+     management:
+ endpoints:
+  web:
+   exposure:
+    include: "*" 
+     exclude : "env, beans" 
+    
+    
+    
+    
+    
